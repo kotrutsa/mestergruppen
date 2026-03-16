@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tilbudsoversikt – Mestergruppen Eventbyråtjenester 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #FAFAF8;
+  --card: #FFFFFF;
+  --border: #E8E6E1;
+  --text: #1A1A18;
+  --muted: #6B6960;
+  --accent: #2D5A27;
+  --accent-light: #E8F0E7;
+  --amber: #8B6914;
+  --amber-light: #FEF7E6;
+  --coral: #9E3A1B;
+  --coral-light: #FEF0EB;
+  --blue: #1B5E9E;
+  --blue-light: #EBF3FE;
+  --purple: #5B3E9E;
+  --purple-light: #F2EEFD;
+  --teal: #0F6E56;
+  --teal-light: #E6F5EF;
+  --red: #A32D2D;
+  --red-light: #FCEBEB;
+  --pink: #993556;
+  --pink-light: #FBEAF0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+.container { max-width: 940px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; margin-bottom: 0.25rem; }
+.subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; }
+
+/* Top stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 2rem; }
+.stat { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 0.85rem 1rem; }
+.stat-label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.stat-val { font-size: 1.4rem; font-weight: 700; }
+.stat-sub { font-size: 0.75rem; color: var(--muted); }
+
+/* Progress bar */
+.progress-wrap { margin-bottom: 2.5rem; }
+.progress-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; display: flex; justify-content: space-between; }
+.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 4px; transition: width 0.5s; }
+
+/* Nav tabs */
+.nav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 1.5rem; position: sticky; top: 0; background: var(--bg); padding: 0.75rem 0; z-index: 10; border-bottom: 1px solid var(--border); }
+.nav-btn { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--card); font-size: 0.8rem; cursor: pointer; font-family: inherit; color: var(--text); transition: all 0.2s; }
+.nav-btn:hover, .nav-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* Timeline */
+.timeline-section { margin-bottom: 2.5rem; }
+.timeline-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; margin-bottom: 1rem; }
+.tl { display: grid; grid-template-columns: 90px 1fr; gap: 0; }
+.tl-date { font-size: 0.75rem; font-weight: 600; padding: 12px 12px 12px 0; border-right: 2px solid var(--border); position: relative; text-align: right; }
+.tl-date::after { content: ''; position: absolute; right: -6px; top: 14px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--accent); background: var(--bg); }
+.tl-date.active::after { background: var(--accent); }
+.tl-date.done::after { background: var(--accent); }
+.tl-date.future::after { border-color: var(--border); }
+.tl-content { padding: 8px 0 20px 20px; }
+.tl-content h4 { font-size: 0.9rem; font-weight: 600; margin-bottom: 2px; }
+.tl-content p { font-size: 0.8rem; color: var(--muted); }
+.tl-tag { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; margin-left: 6px; text-transform: uppercase; }
+.tl-tag.now { background: var(--red-light); color: var(--red); }
+.tl-tag.next { background: var(--amber-light); color: var(--amber); }
+
+/* Sections */
+.section { margin-bottom: 2.5rem; display: none; }
+.section.visible { display: block; }
+.section-title { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; margin-bottom: 0.25rem; }
+.section-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+
+/* Deliverable cards */
+.del { background: var(--card); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; overflow: hidden; }
+.del-header { padding: 0.85rem 1rem; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+.del-check { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 5px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s; font-size: 0.7rem; color: white; }
+.del-check.checked { background: var(--accent); border-color: var(--accent); }
+.del-info { flex: 1; }
+.del-name { font-size: 0.9rem; font-weight: 600; }
+.del-meta { font-size: 0.75rem; color: var(--muted); }
+.del-arrow { color: var(--muted); font-size: 0.8rem; transition: transform 0.2s; flex-shrink: 0; }
+.del.open .del-arrow { transform: rotate(90deg); }
+.del-body { display: none; padding: 0 1rem 1rem; }
+.del.open .del-body { display: block; }
+
+.del-detail { margin-top: 0.75rem; }
+.del-detail h5 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); margin-bottom: 6px; }
+
+.info-box { font-size: 0.85rem; padding: 0.75rem; border-radius: 8px; margin-bottom: 8px; border-left: 3px solid; }
+.info-box.green { background: var(--accent-light); border-color: var(--accent); }
+.info-box.amber { background: var(--amber-light); border-color: var(--amber); }
+.info-box.blue { background: var(--blue-light); border-color: var(--blue); }
+.info-box.red { background: var(--red-light); border-color: var(--red); }
+.info-box.purple { background: var(--purple-light); border-color: var(--purple); }
+.info-box strong { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; display: block; margin-bottom: 3px; }
+.info-box.green strong { color: var(--accent); }
+.info-box.amber strong { color: var(--amber); }
+.info-box.blue strong { color: var(--blue); }
+.info-box.red strong { color: var(--red); }
+.info-box.purple strong { color: var(--purple); }
+
+/* Sub-items */
+.sub-list { list-style: none; margin: 0.5rem 0; }
+.sub-list li { font-size: 0.85rem; padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; gap: 8px; }
+.sub-list li:last-child { border-bottom: none; }
+.sub-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 7px; flex-shrink: 0; }
+
+/* Tags */
+.tag { display: inline-block; font-size: 0.65rem; font-weight: 600; padding: 2px 8px; border-radius: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+.tag-r1 { background: var(--red-light); color: var(--red); }
+.tag-r2 { background: var(--purple-light); color: var(--purple); }
+.tag-pris { background: var(--amber-light); color: var(--amber); }
+.tag-case { background: var(--blue-light); color: var(--blue); }
+.tag-ref { background: var(--teal-light); color: var(--teal); }
+.tag-krav { background: var(--accent-light); color: var(--accent); }
+
+/* Event table */
+.event-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; margin: 0.75rem 0; }
+.event-table th { text-align: left; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); padding: 6px 8px; border-bottom: 2px solid var(--border); }
+.event-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); }
+.event-table tr:last-child td { border-bottom: none; font-weight: 600; }
+.event-table .q-header { background: var(--bg); font-weight: 600; }
+
+/* Key info box */
+.key-info { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.25rem; margin-bottom: 1.25rem; }
+.key-info h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
+.key-info p { font-size: 0.85rem; color: var(--muted); }
+.ki-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Tilbudsoversikt</h1>
+  <p class="subtitle">Mestergruppen – Rammeavtale eventbyråtjenester 2026 &middot; Alt du trenger å levere samlet på ett sted</p>
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-label">Frist runde 1</div><div class="stat-val" style="color:var(--red);">20. mars</div><div class="stat-sub">4 dager igjen</div></div>
+    <div class="stat"><div class="stat-label">Årlig verdi</div><div class="stat-val">60M</div><div class="stat-sub">NOK ekskl. mva</div></div>
+    <div class="stat"><div class="stat-label">Avtaleperiode</div><div class="stat-val">2+2 år</div><div class="stat-sub">Oppstart 01.08.2026</div></div>
+    <div class="stat"><div class="stat-label">Tildelingsvekt</div><div class="stat-val">60/40</div><div class="stat-sub">Case / Pris</div></div>
+    <div class="stat"><div class="stat-label">Konkurrenter</div><div class="stat-val">15</div><div class="stat-sub">→ 2 vinnere</div></div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-wrap">
+    <div class="progress-label"><span>Totalt fremgang</span><span id="progressPct">0 %</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav-btn active" data-target="tidslinje">Tidslinje</button>
+    <button class="nav-btn" data-target="runde1">Runde 1 – Frist 20/3</button>
+    <button class="nav-btn" data-target="runde2">Runde 2 – Case</button>
+    <button class="nav-btn" data-target="kravspec">Kravspesifikasjoner</button>
+    <button class="nav-btn" data-target="prismodell">Prismodell</button>
+    <button class="nav-btn" data-target="kundeinfo">Om Mestergruppen</button>
+  </div>
+
+  <!-- ==================== TIDSLINJE ==================== -->
+  <div class="section visible" id="sec-tidslinje">
+    <div class="section-title">Tidslinje og frister</div>
+    <div class="section-desc">Hele konkurranseprosessen fra start til kontraktsoppstart.</div>
+
+    <div class="tl">
+      <div class="tl-date active">16. mars</div>
+      <div class="tl-content"><h4>Dere er her <span class="tl-tag now">Nå</span></h4><p>Start forberedelse av tilbud runde 1</p></div>
+
+      <div class="tl-date active">20. mars</div>
+      <div class="tl-content"><h4>Frist runde 1 – Prisforespørsel <span class="tl-tag now">4 dager</span></h4><p>Fyll ut MS Forms-skjema med indikative priser. Send selskapspresentasjon, nøkkelpersonell og 3 referanseprosjekter til havard.persen@mestergruppen.no</p></div>
+
+      <div class="tl-date future">~25. mars</div>
+      <div class="tl-content"><h4>Screening</h4><p>MG velger ut 4–5 aktører fra 15 søkere basert på runde 1-besvarelsen</p></div>
+
+      <div class="tl-date future">27. mars</div>
+      <div class="tl-content"><h4>Frist runde 2 – Casebesvarelse <span class="tl-tag next">Neste</span></h4><p>Skriftlig besvarelse av business case (vedlegg 3). Vektes 60 % av totalscoren.</p></div>
+
+      <div class="tl-date future">31/3–7/4</div>
+      <div class="tl-content"><h4>Påske</h4><p>Pause i prosessen</p></div>
+
+      <div class="tl-date future">7.–10. apr</div>
+      <div class="tl-content"><h4>Evaluering</h4><p>MG evaluerer alle besvarelser</p></div>
+
+      <div class="tl-date future">13.–14. apr</div>
+      <div class="tl-content"><h4>Muntlig presentasjon</h4><p>Presentasjon hos Mestergruppen – forbered pitch av case, team og referanser</p></div>
+
+      <div class="tl-date future">14.–17. apr</div>
+      <div class="tl-content"><h4>Avtaleinngåelse</h4><p>Kontrakt signeres med 2 eventbyråer + 1 bookingbyrå</p></div>
+
+      <div class="tl-date future">1. aug</div>
+      <div class="tl-content"><h4>Kontraktsoppstart</h4><p>Rammeavtale trer i kraft. Bindende til 30.04.2026 i mellomtiden.</p></div>
+    </div>
+  </div>
+
+  <!-- ==================== RUNDE 1 ==================== -->
+  <div class="section" id="sec-runde1">
+    <div class="section-title">Runde 1 – Leveranser innen 20. mars</div>
+    <div class="section-desc">Alt som må inn i denne runden. 15 aktører screenes ned til 4–5. Fokuser på å skille dere ut.</div>
+
+    <div class="info-box blue" style="margin-bottom: 1.25rem;"><strong>Oppdatering fra Håvard Persen (16. mars)</strong>Det viktigste å fylle ut nå er MS Forms-skjemaet og «Generell Kravspesifikasjon» (Vedlegg 2). De øvrige kravspesifikasjonene (Event og Booking) trengs først til runde 2. Alle forespørsler ble sendt ut samtidig 16. mars kl. 12:14 – ingen fikk forsprang. Referanser trenger ikke være et fullt presentasjonsdeck; ingen referanser kontaktes uten samtykke.</div>
+
+    <div class="del" data-item="r1-0">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-0">✓</div>
+        <div class="del-info"><div class="del-name">Generell Kravspesifikasjon (Vedlegg 2) <span class="tag tag-krav">23 krav</span> <span class="tag tag-r1">Prioritet</span></div><div class="del-meta">Fyll ut leverandørvurdering og kommentar for alle generelle krav og faktura/pris-krav</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box red"><strong>Kritisk – dette er det viktigste ifølge Håvard</strong>Generell Kravspesifikasjon er eksplisitt nevnt som det viktigste å fylle ut nå, sammen med MS Forms-skjemaet. Fyll ut kolonne «Leverandørvurdering» og «Kommentar» for alle 23 krav (14 generelle + 9 faktura/pris).</div>
+        <div class="del-detail"><h5>Slik fyller dere ut</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--accent)"></span>Åpne filen «Vedlegg 2 – Kravspesifikasjon.xlsx»</li>
+            <li><span class="sub-dot" style="background:var(--accent)"></span>For hvert krav: velg «Ja», «Delvis» eller «Nei» i kolonne Leverandørvurdering</li>
+            <li><span class="sub-dot" style="background:var(--accent)"></span>Skriv en kort, konkret kommentar som viser hvordan dere møter kravet</li>
+            <li><span class="sub-dot" style="background:var(--accent)"></span>Se fanen «Kravspesifikasjoner» under seksjon for detaljert oversikt over nøkkelkrav</li>
+          </ul>
+        </div>
+        <div class="info-box green"><strong>Tips</strong>Vær ærlige i egenvurderingen. Mestergruppen sier selv at de gjør en helhetsvurdering – det er bedre å si «Delvis» med en god forklaring enn å si «Ja» uten substans.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r1-1">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-1">✓</div>
+        <div class="del-info"><div class="del-name">MS Forms-skjema med indikative priser <span class="tag tag-pris">Pris</span></div><div class="del-meta">Fyll ut det digitale skjemaet med prismodell og honorarstruktur</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box red"><strong>Kritisk – dette er screening-grunnlaget</strong>MG bruker dette til å sortere ut aktører. Indikative priser betyr at det ikke trenger å være endelig, men det må være realistisk og konkurransedyktig.</div>
+        <div class="del-detail"><h5>Hva dere må inkludere</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Honorarmodell: timepris, fast honorar, eller kombinasjon</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Timepriser per rolle (prosjektleder, produsent, tekniker, etc.)</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Prosenttillegg på viderefakturerte kostnader fra underleverandører</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Eventuelle overtids-/natt-/helgetillegg</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Bekreftelse på 60 dagers betalingsbetingelser</li>
+          </ul>
+        </div>
+        <div class="info-box green"><strong>Tips</strong>MG sier «indikative priser» – dere trenger ikke endelig pris, men vis en tydelig og transparent prisstruktur. Skill klart mellom byråhonorar og produksjonskostnader.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r1-2">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-2">✓</div>
+        <div class="del-info"><div class="del-name">Selskapspresentasjon <span class="tag tag-r1">Runde 1</span></div><div class="del-meta">PDF eller PPT – hvem er dere, hva gjør dere, hvorfor dere</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Anbefalt innhold</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Om byrået: historie, visjon, størrelse, lokasjon</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Kjernetjenester og spesialkompetanser</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Nøkkeltall: omsetning, antall arrangementer per år, antall ansatte</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Kundeportefølje (relevante bransjer – bygg, industri, B2B)</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Bærekraftstiltak og sertifiseringer</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Hvorfor dere er rett partner for Mestergruppen</li>
+          </ul>
+        </div>
+        <div class="info-box blue"><strong>Strategisk tips</strong>MG er et konsern med byggebransje-DNA. Vis at dere forstår deres verden – jordnære, praktiske folk som verdsetter kvalitet og effektivitet. Unngå for mye «byrå-jargong».</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r1-3">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-3">✓</div>
+        <div class="del-info"><div class="del-name">Presentasjon av nøkkelpersonell <span class="tag tag-r1">Runde 1</span></div><div class="del-meta">Teamet som skal jobbe dedikert med Mestergruppen</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>For hver nøkkelperson, inkluder</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--teal)"></span>Navn, rolle og bilde</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span>Relevant erfaring (år i bransjen, type arrangementer)</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span>2–3 referanseprosjekter per person</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span>Spesialkompetanser (produksjon, konsept, logistikk)</li>
+          </ul>
+        </div>
+        <div class="info-box green"><strong>Tips</strong>MG ber eksplisitt om fast kontaktperson + fast team (krav G3). Navngi hvem som blir deres dedikerte team og vis at disse personene har kapasitet til et engasjement på denne størrelsen.</div>
+        <div class="info-box amber"><strong>Minimumsroller å presentere</strong>Dedikert kundekontakt/prosjektleder, kreativ leder/konseptutvikler, produksjonsleder, og gjerne en teknisk ansvarlig.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r1-4">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-4">✓</div>
+        <div class="del-info"><div class="del-name">3 referanseprosjekter <span class="tag tag-ref">Referanser</span></div><div class="del-meta">Dokumenterte prosjekter som viser bredde og relevans</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>For hvert referanseprosjekt, beskriv</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Kunde og bransje</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Type arrangement og størrelse (deltakere, budsjett)</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Deres rolle og leveranser</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Utfordringer og hvordan dere løste dem</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Målbare resultater (tilfredshet, besparelser, effekt)</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span>Kontaktperson for referansesjekk</li>
+          </ul>
+        </div>
+        <div class="info-box blue"><strong>Strategisk valg av referanser</strong>Velg prosjekter som speiler MGs behov: stor konferanse (400+ pers), møteserie/turné (flere like arrangementer), og gjerne et med internasjonal logistikk (jf. Ruhpolding-arrangementet). Bygg/industri-bransjen er et pluss.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r1-5">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r1-5">✓</div>
+        <div class="del-info"><div class="del-name">Send alt til havard.persen@mestergruppen.no <span class="tag tag-r1">Runde 1</span></div><div class="del-meta">Samle alle vedlegg i én e-post</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box amber"><strong>Husk</strong>MS Forms-skjemaet fylles ut separat via lenken i e-posten. Alt annet sendes samlet på e-post: utfylt Generell Kravspesifikasjon (Vedlegg 2), selskapspresentasjon, nøkkelpersonell og referanseprosjekter. Navngi filene tydelig.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== RUNDE 2 ==================== -->
+  <div class="section" id="sec-runde2">
+    <div class="section-title">Runde 2 – Business case (frist 27. mars)</div>
+    <div class="section-desc">Kun for de 4–5 som går videre. Vektes 60 % av totalscoren. Krev både skriftlig og muntlig besvarelse.</div>
+
+    <div class="key-info">
+      <h4><span class="ki-icon" style="background:var(--purple)">!</span> Business caset er ikke tilgjengelig ennå</h4>
+      <p>Dere mottar caset etter screening av runde 1. Men basert på selskapspresentasjonen vet vi hva MG typisk vil teste. Forbered dere på disse temaene:</p>
+    </div>
+
+    <div class="info-box purple" style="margin-bottom: 1.25rem;"><strong>Kravspesifikasjoner til runde 2</strong>Ifølge Håvard Persen skal de detaljerte kravspesifikasjonene for Fullservice eventbyrå (45 krav) og Bookingbyrå fylles ut til runde 2. Start gjerne forberedelsene allerede nå.</div>
+
+    <div class="del" data-item="r2-1">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r2-1">✓</div>
+        <div class="del-info"><div class="del-name">Skriftlig casebesvarelse <span class="tag tag-case">60 % vekt</span></div><div class="del-meta">Skriftlig presentasjon av løsning – leveres innen 27. mars</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Sannsynlige temaer basert på MGs behov</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Konseptutvikling for en stor konferanse (XL-BYGG 550 pers eller Mesterhuskonferansen 500 pers)</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Gjennomføring av en mestermøte-serie (5–6 lignende arrangementer i ulike regioner)</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Budsjettoptimalisering og kostnadseffektive løsninger</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Bærekraftstiltak integrert i arrangement</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span>Hvordan dere skaper «rød tråd fra start til slutt»</li>
+          </ul>
+        </div>
+        <div class="info-box green"><strong>Forberedelse nå</strong>Samle case-eksempler fra lignende prosjekter. Lag en «verktøykasse» med konsepter, budsjettrammer og produksjonsløsninger som kan tilpasses raskt når caset kommer.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="r2-2">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="r2-2">✓</div>
+        <div class="del-info"><div class="del-name">Muntlig presentasjon 13.–14. april <span class="tag tag-case">60 % vekt</span></div><div class="del-meta">Presentasjon hos Mestergruppen – vis teamet og løsningen</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Presentasjonen bør dekke (fra slide 10 i selskapspres.)</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--blue)"></span>Presentasjon av selskapet</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span>Prismodell – hvordan dere priser tjenestene</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span>Presentasjon av nøkkelpersonell (ta dem med!)</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span>Casebesvarelse – muntlig gjennomgang</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span>3 referanseprosjekter presentert live</li>
+          </ul>
+        </div>
+        <div class="info-box amber"><strong>Tips</strong>Ta med nøkkelpersonene som faktisk skal jobbe med MG. Det bygger tillit og viser at dere tar oppdraget på alvor. Forbered dere på Q&A om prismodell og kapasitet.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== KRAVSPESIFIKASJONER ==================== -->
+  <div class="section" id="sec-kravspec">
+    <div class="section-title">Kravspesifikasjoner – Oversikt</div>
+    <div class="section-desc">3 dokumenter med totalt 68 krav. Fylles ut med egenvurdering (Møter krav / Delvis / Møter ikke krav) og kommentar.</div>
+
+    <div class="info-box blue" style="margin-bottom: 1.25rem;"><strong>Oppdatering fra Håvard Persen (16. mars)</strong>Dere trenger kun å fylle ut «Generelle kravspesifikasjoner» (Vedlegg 2) til runde 1. Event- og bookingbyrå-kravspesifikasjonene ønskes fylt ut til runde 2.</div>
+
+    <div class="del" data-item="k-1">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="k-1">✓</div>
+        <div class="del-info"><div class="del-name">Vedlegg 2 – Generelle krav <span class="tag tag-krav">14 krav</span> <span class="tag tag-r1">Runde 1 – må leveres</span></div><div class="del-meta">Samarbeid, bemanning, GDPR, fakturering og etikk</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Nøkkelkrav å prioritere</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>G3:</strong> Fast kontaktperson + fast team – navngi personene</li>
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>G7:</strong> Tilstrekkelig bemanning – vis kapasitet for 24 events/år</li>
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>G11:</strong> Akseptere bruk av MGs egne avtaler der billigere</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>G2:</strong> GDPR – ha databehandleravtale klar</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>G12:</strong> Bekreft at dere kan bruke Proviso</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>G13:</strong> Dekke egne reisekostnader – pris dette inn</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="del" data-item="k-2">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="k-2">✓</div>
+        <div class="del-info"><div class="del-name">Vedlegg 2 – Faktura og priser <span class="tag tag-pris">9 krav</span> <span class="tag tag-r1">Runde 1 – må leveres</span></div><div class="del-meta">Betalingsbetingelser, transparens og prisregulering</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Kritiske betingelser å akseptere</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>60 dagers betalingsbetingelser</strong> – ingen fakturagebyr</li>
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>Ingen a-konto</strong> – kun dokumenterte forhåndsutlegg</li>
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>Åpne påslag</strong> – oppgi alle marginer på underleverandører</li>
+            <li><span class="sub-dot" style="background:var(--red)"></span><strong>Opplysningsplikt</strong> – kick-backs må deklareres</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>Detaljert faktura</strong> per arrangement i Excel-format</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>Prisjustering</strong> tidligst 01.01.2027, deretter KPI-regulert</li>
+          </ul>
+        </div>
+        <div class="info-box red"><strong>Cash flow-advarsel</strong>60 dager + ingen a-konto betyr at dere legger ut for alt. For en konferanse på 5 MNOK kan dette bety 2–3 MNOK i utlegg før dere får betalt. Sørg for at dere har likviditet.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="k-3">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="k-3">✓</div>
+        <div class="del-info"><div class="del-name">Kravspesifikasjon – Fullservice eventbyrå <span class="tag tag-krav">45 krav</span> <span class="tag tag-r2">Runde 2</span></div><div class="del-meta">9 kategorier (A–I): strategi, produksjon, logistikk, innhold, drift, pris m.m.</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>De 9 kategoriene</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--purple)"></span><strong>A:</strong> Strategi, konsept og rådgivning (5 krav) – vis forretningsmålforståelse</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span><strong>B:</strong> Prosjektledelse og økonomi (5 krav) – navngi prosjektleder, vis budsjettprosess</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span><strong>C:</strong> Produksjon og teknisk (6 krav) – lys, lyd, AV, scenografi, streaming</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span><strong>D:</strong> Logistikk og deltakere (6 krav) – påmelding, transport, hotell, crew</li>
+            <li><span class="sub-dot" style="background:var(--pink)"></span><strong>E:</strong> Innhold og underholdning (4 krav) – artister, aktiviteter, konferansier</li>
+            <li><span class="sub-dot" style="background:#888780"></span><strong>F:</strong> Lokaler og destinasjon (3 krav) – venues, forhandlingskraft</li>
+            <li><span class="sub-dot" style="background:var(--accent)"></span><strong>G:</strong> Drift og gjennomføring (4 krav) – on-site crew, HMS, sikkerhet</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span><strong>H:</strong> Etterarbeid og evaluering (4 krav) – KPIer, økonomi, rettigheter</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>I:</strong> Pris og kommersielt (4 krav) – honorarmodell, forsikring</li>
+          </ul>
+        </div>
+        <div class="info-box purple"><strong>Runde 2</strong>Ifølge Håvard Persen trenger dere ikke fylle ut denne til runde 1. Denne kravspesifikasjonen ønskes fylt ut til runde 2, etter screening. Bruk tiden nå til å forberede dere – les gjennom kravene og samle dokumentasjon.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== PRISMODELL ==================== -->
+  <div class="section" id="sec-prismodell">
+    <div class="section-title">Prismodell og honorarstruktur</div>
+    <div class="section-desc">Alt MG krever om prising, og hva dere bør tenke på.</div>
+
+    <div class="key-info">
+      <h4><span class="ki-icon" style="background:var(--amber)">$</span> MGs prisfilosofi</h4>
+      <p>MG bruker «total cost of ownership»-prinsippet. De ser ikke bare på timepris, men på totalbildet: honorar + påslag + faktisk kostnad. Transparens og forutsigbarhet trumfer lavest pris.</p>
+    </div>
+
+    <div class="del" data-item="p-1">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="p-1">✓</div>
+        <div class="del-info"><div class="del-name">Byråhonorar – timepriser per rolle</div><div class="del-meta">Klart skille mellom honorar og produksjonskostnader (krav I1)</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Roller å prise</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Prosjektleder / kundekontakt</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Kreativ leder / konseptutvikler</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Produsent / produksjonsleder</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Prosjektkoordinator / junior</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Teknisk produsent</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>Grafisk designer / innholdsprodusent</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span>On-site crew / vertskap</li>
+          </ul>
+        </div>
+        <div class="info-box amber"><strong>Tillegg å spesifisere</strong>Overtid (etter kl. 17?), helg/helligdag, natt (krav F1). Vær tydelig – skjulte tillegg skaper mistillit.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="p-2">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="p-2">✓</div>
+        <div class="del-info"><div class="del-name">Påslag på underleverandører</div><div class="del-meta">Prosenttillegg på viderefakturerte kostnader (krav F3, F5, I2)</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box blue"><strong>Hva MG spør om</strong>Et konkret prosenttillegg på alle innkjøpte tjenester som viderefaktureres. MG vil også ha tilgang til originalfakturaer fra underleverandører.</div>
+        <div class="info-box green"><strong>Anbefaling</strong>Oppgi et enkelt, flatt påslag (f.eks. «8 % administrativt påslag på alle underleverandørkostnader»). Tilby fullt innsyn. Husk: MG har rett til å bruke egne avtaler der de er billigere (krav G11).</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="p-3">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="p-3">✓</div>
+        <div class="del-info"><div class="del-name">Betalingsbetingelser</div><div class="del-meta">60 dager, ingen a-konto, ingen fakturagebyr</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box red"><strong>Ikke-forhandlingsbart</strong>MG er tydelig på 60 dager, ingen a-konto (med unntak for dokumenterte forhåndsbetalinger), og ingen gebyrer. Dere må akseptere dette.</div>
+        <div class="info-box amber"><strong>Likviditetsplanlegging</strong>For et arrangement på 5 MNOK kan dere potensielt ha 2–3 MNOK utestående i 60+ dager. Sørg for at likviditeten tåler dette, og pris inn kapitalkostnaden i honoraret.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="p-4">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="p-4">✓</div>
+        <div class="del-info"><div class="del-name">Prisregulering og varighet</div><div class="del-meta">Fast pris til 01.01.2027, deretter KPI-regulert</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box blue"><strong>Detaljer</strong>Prisene i vedlegg 1 kan tidligst endres 01.01.2027. Deretter årlig justering begrenset til SSB konsumprisindeks. Varslingsfrist: 2 måneder.</div>
+        <div class="info-box green"><strong>Tips</strong>Pris for å tåle minst 1,5 år uten justering (aug 2026 → jan 2027). Legg inn en liten buffer for lønnsøkninger.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== OM MESTERGRUPPEN ==================== -->
+  <div class="section" id="sec-kundeinfo">
+    <div class="section-title">Om Mestergruppen – Kjenn kunden din</div>
+    <div class="section-desc">Nøkkelinformasjon om MG for å skrive et målrettet tilbud.</div>
+
+    <div class="key-info">
+      <h4><span class="ki-icon" style="background:var(--accent)">MG</span> Mestergruppen i tall</h4>
+      <p>Et av Norges største konsern innen byggevare, huskjeder og eiendom. Ca. 20 mrd omsetning, 1 400 ansatte, 1 500 medlemsbedrifter. Eid av Ferd AS og kjedemedlemmer.</p>
+    </div>
+
+    <div class="del" data-item="mg-1">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="mg-1">✓</div>
+        <div class="del-info"><div class="del-name">Kjedene dere må kjenne</div><div class="del-meta">11 kjeder dekkes av avtalen</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="del-detail"><h5>Kjeder under avtalen</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--blue)"></span><strong>Byggevare:</strong> XL-BYGG, Byggtorget, Byggeriet, Ski Bygg</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span><strong>Huskjeder:</strong> Mesterhus, Systemhus, Nordbohus, Blink Hus</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>Hytte:</strong> Saltdalshytta</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span><strong>Industri:</strong> Pretre (takstol/precut)</li>
+            <li><span class="sub-dot" style="background:var(--purple)"></span><strong>Konsern:</strong> Mestergruppen (egne arrangementer)</li>
+          </ul>
+        </div>
+        <div class="info-box blue"><strong>Viktig å forstå</strong>Mange av «kundene» er selvstendige medlemsbedrifter, ikke ansatte i MG. Arrangementene handler ofte om å engasjere, informere og motivere disse uavhengige bedriftene.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="mg-2">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="mg-2">✓</div>
+        <div class="del-info"><div class="del-name">Arrangementsporteføljen</div><div class="del-meta">~24 arrangementer, ~3 800 deltakere, ~41 MNOK per år</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <table class="event-table">
+          <tr><th>Kvartal</th><th>Antall events</th><th>Deltakere</th><th>Kostnad</th></tr>
+          <tr class="q-header"><td>Q1 (jan–mar)</td><td>13</td><td>2 640</td><td>32,1 MNOK</td></tr>
+          <tr class="q-header"><td>Q2 (apr–jun)</td><td>6</td><td>810</td><td>5,2 MNOK</td></tr>
+          <tr class="q-header"><td>Q3 (jul–sep)</td><td>–</td><td>–</td><td>–</td></tr>
+          <tr class="q-header"><td>Q4 (okt–des)</td><td>5</td><td>340</td><td>3,5 MNOK</td></tr>
+          <tr><td>Totalt</td><td>24</td><td>3 790</td><td>40,8 MNOK</td></tr>
+        </table>
+        <div class="info-box amber"><strong>Sesongvariasjonen er ekstrem</strong>79 % av budsjettet og 70 % av deltakerne er i Q1. Dere må vise at dere har kapasitet til å håndtere 13 arrangementer på 3 måneder – mange overlappende.</div>
+        <div class="del-detail"><h5>Arrangementtyper</h5>
+          <ul class="sub-list">
+            <li><span class="sub-dot" style="background:var(--purple)"></span><strong>Konferanser</strong> (450–550 pers, 5–5,7 MNOK) – XL-BYGG og Byggtorget sine årlige hovedsamlinger</li>
+            <li><span class="sub-dot" style="background:var(--blue)"></span><strong>Mestermøter</strong> (60–200 pers, 0,85–3 MNOK) – regionale samlinger for XL-BYGG og Byggtorget</li>
+            <li><span class="sub-dot" style="background:var(--teal)"></span><strong>Kongresser</strong> (150–500 pers, 0,8–5 MNOK) – Systemhus, Blink-Hus, Nordbohus, Mesterhus</li>
+            <li><span class="sub-dot" style="background:var(--amber)"></span><strong>Fagdager</strong> (30–60 pers, 0,25–0,5 MNOK) – mindre faglige samlinger</li>
+            <li><span class="sub-dot" style="background:var(--coral)"></span><strong>Spesial</strong> – Ruhpolding (200 pers i utlandet), Lederforum, Markedsseminar</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="del" data-item="mg-3">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="mg-3">✓</div>
+        <div class="del-info"><div class="del-name">Faktureringsmodell</div><div class="del-meta">Viktig: alle fakturaer til MG, merket med avdelingsnummer</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box blue"><strong>Sentralisert fakturering</strong>Uansett om det er en egeid MG-avdeling eller en medlemsbedrift som bestiller, så faktureres alt til Mestergruppen sentralt. Én faktura per arrangement, merket med korrekt avdelingsnummer.</div>
+      </div>
+    </div>
+
+    <div class="del" data-item="mg-4">
+      <div class="req-header del-header">
+        <div class="del-check" data-id="mg-4">✓</div>
+        <div class="del-info"><div class="del-name">Kontaktperson</div><div class="del-meta">Håvard Persen – Kategorisjef indirekte varer og tjenester</div></div>
+        <span class="del-arrow">▸</span>
+      </div>
+      <div class="del-body">
+        <div class="info-box green"><strong>Kontaktinfo</strong>Håvard Persen, Kategorisjef indirekte varer og tjenester. E-post: havard.persen@mestergruppen.no | Mobil: +47 958 20 921. All korrespondanse og tilbudsinnsendelse går til ham.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// Nav tabs
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const target = btn.dataset.target;
+    document.querySelectorAll('.section').forEach(s => {
+      s.classList.toggle('visible', s.id === 'sec-' + target);
+    });
+  });
+});
+
+// Toggle deliverables
+document.querySelectorAll('.del-header').forEach(h => {
+  h.addEventListener('click', (e) => {
+    if (e.target.classList.contains('del-check')) return;
+    h.parentElement.classList.toggle('open');
+  });
+});
+
+// Checkboxes with in-memory state
+const checkState = {};
+function updateProgress() {
+  const all = document.querySelectorAll('.del-check');
+  const checked = document.querySelectorAll('.del-check.checked');
+  const pct = all.length ? Math.round(checked.length / all.length * 100) : 0;
+  document.getElementById('progressPct').textContent = pct + ' %';
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+document.querySelectorAll('.del-check').forEach(chk => {
+  chk.addEventListener('click', (e) => {
+    e.stopPropagation();
+    chk.classList.toggle('checked');
+    updateProgress();
+  });
+});
+
+updateProgress();
+</script>
+</body>
+</html>
