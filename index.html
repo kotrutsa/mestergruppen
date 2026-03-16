@@ -131,9 +131,38 @@ h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; 
 .key-info h4 { font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 8px; }
 .key-info p { font-size: 0.85rem; color: var(--muted); }
 .ki-icon { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; color: white; flex-shrink: 0; }
+
+/* Password gate */
+#pw-gate { position: fixed; inset: 0; z-index: 9999; background: var(--bg); display: flex; align-items: center; justify-content: center; }
+#pw-gate.hidden { display: none; }
+.pw-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 2.5rem 2rem; max-width: 360px; width: 90%; text-align: center; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+.pw-box h2 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.25rem; }
+.pw-box p { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.25rem; }
+.pw-input { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; font-family: inherit; text-align: center; outline: none; transition: border-color 0.2s; }
+.pw-input:focus { border-color: var(--accent); }
+.pw-input.error { border-color: var(--red); animation: shake 0.3s; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+.pw-btn { margin-top: 0.75rem; width: 100%; padding: 10px; border: none; border-radius: 8px; background: var(--accent); color: white; font-size: 0.9rem; font-weight: 600; font-family: inherit; cursor: pointer; transition: opacity 0.2s; }
+.pw-btn:hover { opacity: 0.9; }
+.pw-hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.75rem; }
+#main-content { display: none; }
+#main-content.unlocked { display: block; }
 </style>
 </head>
 <body>
+
+<!-- Password gate -->
+<div id="pw-gate">
+  <div class="pw-box">
+    <h2>Brave Tilbudsoversikt</h2>
+    <p>Skriv inn passordet for å se innholdet</p>
+    <input type="password" class="pw-input" id="pw-input" placeholder="Passord" autocomplete="off">
+    <button class="pw-btn" id="pw-btn">Lås opp</button>
+    <p class="pw-hint">Kun for Brave-teamet</p>
+  </div>
+</div>
+
+<div id="main-content">
 <div class="container">
 
   <h1>Tilbudsoversikt</h1>
@@ -599,7 +628,45 @@ h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; font-weight: 400; 
 
 </div>
 
+</div><!-- close main-content -->
+
 <script>
+// Password gate — simple hash check
+// To change the password: update the hash below.
+// Generate a new hash at: open browser console → crypto.subtle.digest('SHA-256', new TextEncoder().encode('yourpassword')).then(h=>console.log([...new Uint8Array(h)].map(b=>b.toString(16).padStart(2,'0')).join('')))
+const PW_HASH = '68b1662c1f4dacf8cf39258c3f80f093d13e88d394133fc429effad6d9a707c3'; // "brave2026"
+
+async function hashStr(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function tryUnlock() {
+  const input = document.getElementById('pw-input');
+  const hash = await hashStr(input.value);
+  if (hash === PW_HASH) {
+    document.getElementById('pw-gate').classList.add('hidden');
+    document.getElementById('main-content').classList.add('unlocked');
+    try { sessionStorage.setItem('pw-ok', '1'); } catch {}
+  } else {
+    input.classList.add('error');
+    input.value = '';
+    setTimeout(() => input.classList.remove('error'), 400);
+  }
+}
+
+document.getElementById('pw-btn').addEventListener('click', tryUnlock);
+document.getElementById('pw-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+// Auto-unlock if already authenticated this session
+try { if (sessionStorage.getItem('pw-ok') === '1') {
+  document.getElementById('pw-gate').classList.add('hidden');
+  document.getElementById('main-content').classList.add('unlocked');
+}} catch {}
+
+// Focus password field
+document.getElementById('pw-input').focus();
+
 // Nav tabs
 document.querySelectorAll('.nav-btn').forEach(btn => {
   btn.addEventListener('click', () => {
@@ -620,8 +687,32 @@ document.querySelectorAll('.del-header').forEach(h => {
   });
 });
 
-// Checkboxes with in-memory state
-const checkState = {};
+// ====================================================
+// Shared checkbox state via jsonbin.io (free cloud storage)
+// ====================================================
+// SETUP: Replace BIN_ID and API_KEY below with your own.
+// 1. Go to jsonbin.io and create a free account
+// 2. Create a new bin with content: {"checked":[]}
+// 3. Copy the Bin ID and your API key (X-Master-Key)
+// 4. Paste them below
+// ====================================================
+const BIN_ID = 'PASTE_YOUR_BIN_ID_HERE';
+const API_KEY = 'PASTE_YOUR_API_KEY_HERE';
+const API_URL = 'https://api.jsonbin.io/v3/b/' + BIN_ID;
+
+let isSaving = false;
+let pendingSave = false;
+
+// Status indicator
+const statusEl = document.createElement('div');
+statusEl.style.cssText = 'position:fixed;bottom:16px;right:16px;font-size:0.75rem;padding:6px 12px;border-radius:8px;background:var(--card);border:1px solid var(--border);color:var(--muted);z-index:100;opacity:0;transition:opacity 0.3s;';
+document.body.appendChild(statusEl);
+function showStatus(msg, ms) {
+  statusEl.textContent = msg;
+  statusEl.style.opacity = '1';
+  setTimeout(() => { statusEl.style.opacity = '0'; }, ms || 2000);
+}
+
 function updateProgress() {
   const all = document.querySelectorAll('.del-check');
   const checked = document.querySelectorAll('.del-check.checked');
@@ -630,15 +721,95 @@ function updateProgress() {
   document.getElementById('progressFill').style.width = pct + '%';
 }
 
+function getCheckedIds() {
+  const ids = [];
+  document.querySelectorAll('.del-check.checked').forEach(chk => {
+    const id = chk.getAttribute('data-id');
+    if (id) ids.push(id);
+  });
+  return ids;
+}
+
+function applyChecks(ids) {
+  document.querySelectorAll('.del-check').forEach(chk => chk.classList.remove('checked'));
+  (ids || []).forEach(id => {
+    const chk = document.querySelector('.del-check[data-id="' + id + '"]');
+    if (chk) chk.classList.add('checked');
+  });
+  updateProgress();
+}
+
+// Load from cloud
+async function loadFromCloud() {
+  if (BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') {
+    // Not configured yet — use localStorage fallback
+    try {
+      const saved = JSON.parse(localStorage.getItem('brave-mg-checks') || '[]');
+      applyChecks(saved);
+    } catch {}
+    showStatus('Lokal modus – se oppsettguiden for delt lagring', 5000);
+    return;
+  }
+  try {
+    showStatus('Henter status...', 3000);
+    const res = await fetch(API_URL + '/latest', { headers: { 'X-Master-Key': API_KEY } });
+    const data = await res.json();
+    applyChecks(data.record.checked || []);
+    showStatus('Synkronisert', 1500);
+  } catch (e) {
+    console.error('Load error:', e);
+    // Fallback to localStorage
+    try {
+      const saved = JSON.parse(localStorage.getItem('brave-mg-checks') || '[]');
+      applyChecks(saved);
+    } catch {}
+    showStatus('Kunne ikke koble til sky – bruker lokal kopi', 3000);
+  }
+}
+
+// Save to cloud (debounced)
+async function saveToCloud() {
+  const ids = getCheckedIds();
+  // Always save locally as backup
+  try { localStorage.setItem('brave-mg-checks', JSON.stringify(ids)); } catch {}
+
+  if (BIN_ID === 'PASTE_YOUR_BIN_ID_HERE') return;
+
+  if (isSaving) { pendingSave = true; return; }
+  isSaving = true;
+  try {
+    showStatus('Lagrer...', 2000);
+    await fetch(API_URL, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json', 'X-Master-Key': API_KEY },
+      body: JSON.stringify({ checked: ids })
+    });
+    showStatus('Lagret for alle', 1500);
+  } catch (e) {
+    console.error('Save error:', e);
+    showStatus('Lagring feilet – prøv igjen', 3000);
+  }
+  isSaving = false;
+  if (pendingSave) { pendingSave = false; saveToCloud(); }
+}
+
+// Init: load state
+loadFromCloud();
+
+// Checkbox click handlers
 document.querySelectorAll('.del-check').forEach(chk => {
   chk.addEventListener('click', (e) => {
     e.stopPropagation();
     chk.classList.toggle('checked');
     updateProgress();
+    saveToCloud();
   });
 });
 
 updateProgress();
+
+// Auto-refresh every 30 seconds to pick up changes from teammates
+setInterval(loadFromCloud, 30000);
 </script>
 </body>
 </html>
